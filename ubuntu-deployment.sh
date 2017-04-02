@@ -21,3 +21,5 @@ sudo docker run hello-world
 
 #added for SMB shares
 sudo apt-get install cifs-utils
+
+#TODO: map shares to NAS / host

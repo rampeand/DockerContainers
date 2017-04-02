@@ -3,17 +3,20 @@
 echo "Snapshot before (containers running)"
 sudo docker ps
 
-echo "Stopping the following containers:
-"
+echo "Stopping the following containers:"
 sudo docker stop plex
 sudo docker stop sonarr
 sudo docker stop couchpotato
 
-echo "Removing the following containers:
-" 
+echo "Removing the following containers:" 
 sudo docker rm plex
 sudo docker rm sonarr
 sudo docker rm couchpotato
+
+echo "Pulling new images"
+sudo docker pull plexinc/pms-docker
+sudo docker pull linuxserver/sonarr
+sudo docker pull linuxserver/couchpotato
 
 echo "Recreating containers"
 sudo docker run --name plex -d --restart=unless-stopped --net=host -e TZ="America/New_York" -v /media/docker/plex/database:/config -v /media/docker/plex/transcode:/transcode -v /media:/data plexinc/pms-docker
