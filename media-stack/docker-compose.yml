@@ -1,0 +1,147 @@
+version: '3.3'
+
+services:
+  transmission:
+    container_name: transmission
+    image: linuxserver/transmission:latest
+    volumes:
+      - /home/andre/containers/transmission:/config 
+      - /home/andre/media/downloaders/completed:/downloads 
+      - /home/andre/media/downloaders/incomplete/torrents:/incomplete 
+    restart: unless-stopped
+    networks: 
+      - media-bridge
+    environment:
+      PUID: 1000 
+      PGID: 1000 
+      TZ: "America/New_York"
+    ports:
+      - "9091:9091" 
+      - "51413:51413" 
+      - "51413:51413/udp"
+  
+  sabnzbd:
+    container_name: sabnzbd
+    image: linuxserver/sabnzbd:latest
+    volumes:
+      - /home/andre/containers/sabnzbd:/config 
+      - /home/andre/media/downloaders/completed:/downloads 
+      - /home/andre/media/downloaders/incomplete/usenet:/incomplete
+    restart: unless-stopped
+    networks: 
+      - media-bridge
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: "America/New_York"
+    ports:
+      - "8080:8080"
+      - "9090:9090"
+
+  sonarr:
+    container_name: sonarr
+    image: linuxserver/sonarr:latest
+    volumes:
+    - /home/andre/containers/sonarr:/config 
+    - /home/andre/media/tv/Active:/tv 
+    - /home/andre/media/downloaders/completed/tv:/downloads
+    restart: unless-stopped
+    depends_on:
+      - transmission
+      - sabnzbd
+    networks: 
+      - media-bridge
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: "America/New_York"
+    ports:
+      - "8989:8989"
+
+  radarr:
+    container_name: radarr
+    image: linuxserver/radarr:latest
+    volumes:
+      - /home/andre/containers/radarr:/config 
+      - /home/andre/media/downloaders/completed/movies:/downloads 
+      - /home/andre/media/movies:/movies 
+      - /etc/localtime:/etc/localtime:ro 
+    restart: unless-stopped
+    depends_on:
+      - transmission
+      - sabnzbd
+    networks: 
+      - media-bridge
+    environment:
+      PGID: 1000
+      PUID: 1000
+      TZ: "America/New_York"
+    ports:
+      - "7878:7878"
+
+  plex:
+    container_name: plex
+    image: plexinc/pms-docker:latest
+    volumes:
+      - /home/andre/containers/plex/database:/config 
+      - /home/andre/containers/plex/transcode:/transcode 
+      - /home/andre/media:/data
+    restart: unless-stopped
+    depends_on:
+      - transmission
+      - sabnzbd
+      - sonarr
+      - radarr
+    network_mode: host
+    environment:
+      TZ: "America/New_York"
+
+  plexpy:
+    container_name: plexpy
+    image: linuxserver/plexpy:latest
+    volumes:
+      - /home/andre/containers/plexpy:/config 
+      - /home/andre/containers/plex/database/Library/Application\ Support/Plex\ Media\ Server/Logs:/logs:ro
+    restart: unless-stopped
+    depends_on: 
+      - plex
+    network_mode: bridge
+    environment:
+      PGID: 1000
+      PUID: 1000
+    ports:
+        - "8181:8181"
+  
+  portainer:
+    container_name: portainer
+    image: portainer/portainer:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock 
+      - /home/andre/containers/portainer:/data
+    restart: unless-stopped
+    network_mode: bridge 
+    ports:
+      - "9000:9000"  
+
+  ombi:
+    container_name: ombi
+    image: linuxserver/ombi:latest
+    volumes: 
+      - /home/andre/containers/ombi/config:/config
+    restart: unless-stopped
+    networks: 
+      - media-bridge
+    depends_on:
+      - transmission
+      - sabnzbd
+      - sonarr
+      - radarr
+    environment:
+      PUID: 1001 
+      PGID: 1001 
+      TZ: "America/New_York"
+    ports:
+      - "3579:3579"
+
+networks:
+  media-bridge:
