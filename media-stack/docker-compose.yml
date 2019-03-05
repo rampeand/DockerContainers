@@ -44,7 +44,7 @@ services:
     volumes:
     - /home/andre/containers/sonarr:/config 
     - /home/andre/media/tv/Active:/tv 
-    - /home/andre/media/downloaders/completed/tv:/downloads
+    - /home/andre/media/downloaders/completed/tv:/downloads/tv
     restart: unless-stopped
     depends_on:
       - transmission
@@ -63,7 +63,7 @@ services:
     image: linuxserver/radarr:latest
     volumes:
       - /home/andre/containers/radarr:/config 
-      - /home/andre/media/downloaders/completed/movies:/downloads 
+      - /home/andre/media/downloaders/completed/movies:/downloads/movies 
       - /home/andre/media/movies:/movies 
       - /etc/localtime:/etc/localtime:ro 
     restart: unless-stopped
@@ -137,11 +137,25 @@ services:
       - sonarr
       - radarr
     environment:
-      PUID: 1001 
-      PGID: 1001 
+      PUID: 1000 
+      PGID: 1000 
       TZ: "America/New_York"
     ports:
       - "3579:3579"
+
+  jackett:
+    image: linuxserver/jackett
+    container_name: jackett
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: "America/New_York"
+    volumes:
+      - /home/andre/containers/jackett/config:/config
+      - /home/andre/containers/jackett/blackhole:/downloads
+    ports:
+      - 9117:9117
+    restart: unless-stopped
 
 networks:
   media-bridge:
