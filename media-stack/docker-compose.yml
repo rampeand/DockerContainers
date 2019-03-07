@@ -49,6 +49,7 @@ services:
     depends_on:
       - transmission
       - sabnzbd
+      - jackett
     networks: 
       - media-bridge
     environment:
@@ -70,6 +71,7 @@ services:
     depends_on:
       - transmission
       - sabnzbd
+      - jackett
     networks: 
       - media-bridge
     environment:
@@ -144,18 +146,18 @@ services:
       - "3579:3579"
 
   jackett:
-    image: linuxserver/jackett
     container_name: jackett
+    image: linuxserver/jackett:latest
+    volumes:
+      - /home/andre/containers/jackett/config:/config
+      - /home/andre/containers/jackett/blackhole:/downloads
+    restart: unless-stopped
     environment:
       PUID: 1000
       PGID: 1000
       TZ: "America/New_York"
-    volumes:
-      - /home/andre/containers/jackett/config:/config
-      - /home/andre/containers/jackett/blackhole:/downloads
     ports:
       - 9117:9117
-    restart: unless-stopped
 
 networks:
   media-bridge:
