@@ -221,5 +221,5 @@ networks:
 docker-compose -f /containers/docker-compose.yml up -d
   
 #Set permissions
-chomd 777 /downloaders -R
+chmod 777 /downloaders -R
 
